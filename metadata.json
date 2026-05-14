@@ -1,0 +1,9 @@
+{
+  "name": "AutoCRM SaaS - Gestão Automotiva Inteligente",
+  "description": "Plataforma CRM SaaS completa para lojas de veículos com automação WhatsApp, gestão de estoque e IA.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": []
+}

@@ -1,0 +1,109 @@
+{
+  "entities": {
+    "Store": {
+      "title": "Store",
+      "description": "Represents a store in the SaaS platform.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "logoUrl": { "type": "string" },
+        "primaryColor": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "suspended", "past_due"] },
+        "planId": { "type": "string" },
+        "ownerEmail": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "slug", "status"]
+    },
+    "User": {
+      "title": "User",
+      "description": "System user, can be Master, Admin or Salesperson.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["master", "admin", "sales"] },
+        "storeId": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "inactive"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "role", "status"]
+    },
+    "Vehicle": {
+      "title": "Vehicle",
+      "description": "Vehicle in stock.",
+      "type": "object",
+      "properties": {
+        "make": { "type": "string" },
+        "model": { "type": "string" },
+        "version": { "type": "string" },
+        "year": { "type": "integer" },
+        "mileage": { "type": "integer" },
+        "price": { "type": "number" },
+        "cost": { "type": "number" },
+        "status": { "type": "string", "enum": ["available", "reserved", "sold"] },
+        "storeId": { "type": "string" },
+        "photos": { "type": "array" },
+        "fuel": { "type": "string" },
+        "transmission": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["make", "model", "year", "price", "status", "storeId"]
+    },
+    "Lead": {
+      "title": "Lead",
+      "description": "Potential customer.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "source": { "type": "string" },
+        "status": { "type": "string", "enum": ["new", "contacted", "negotiation", "closed", "lost"] },
+        "score": { "type": "integer" },
+        "storeId": { "type": "string" },
+        "assignedTo": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "phone", "status", "storeId"]
+    },
+    "Conversation": {
+      "title": "Conversation",
+      "description": "Omnichannel (WhatsApp) chat.",
+      "type": "object",
+      "properties": {
+        "storeId": { "type": "string" },
+        "leadId": { "type": "string" },
+        "lastMessage": { "type": "string" },
+        "unreadCount": { "type": "integer" },
+        "status": { "type": "string", "enum": ["open", "closed"] },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["storeId", "leadId", "status"]
+    }
+  },
+  "firestore": {
+    "stores": {
+      "schema": "Store",
+      "description": "Collection of shops using the SaaS platform."
+    },
+    "users": {
+      "schema": "User",
+      "description": "Collection of users across all stores."
+    },
+    "vehicles": {
+      "schema": "Vehicle",
+      "description": "Stock of vehicles for each store."
+    },
+    "leads": {
+      "schema": "Lead",
+      "description": "Leads generated for each store."
+    },
+    "conversations": {
+      "schema": "Conversation",
+      "description": "Chat conversations for each store."
+    }
+  }
+}
