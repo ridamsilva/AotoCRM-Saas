@@ -118,6 +118,32 @@ export function Settings() {
 }
 
 function SettingsModal({ id, onClose }: { id: string, onClose: () => void }) {
+  const [primaryColor, setPrimaryColor] = useState('#3b82f6');
+  const [theme, setTheme] = useState('dark');
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // CRM state
+  const [pipeline, setPipeline] = useState(['Novo Lead', 'Qualificados', 'Visita Agendada', 'Proposta Enviada', 'Fechamento']);
+  
+  // WhatsApp state
+  const [qrCodeData, setQrCodeData] = useState(`AUTOSAAS_CONNECT_${Date.now()}`);
+  const [aiResponse, setAiResponse] = useState(true);
+
+  // CRM functions
+  const updateStage = (index: number, value: string) => {
+    const newPipeline = [...pipeline];
+    newPipeline[index] = value;
+    setPipeline(newPipeline);
+  };
+
+  const removeStage = (index: number) => {
+    setPipeline(pipeline.filter((_, i) => i !== index));
+  };
+
+  const addStage = () => {
+    setPipeline([...pipeline, 'Nova Etapa']);
+  };
+
   const renderContent = () => {
     switch (id) {
       case 'profile':
@@ -143,28 +169,48 @@ function SettingsModal({ id, onClose }: { id: string, onClose: () => void }) {
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nome Comercial</label>
                 <div className="relative">
                   <Building2 className="absolute left-4 top-4 w-4 h-4 text-slate-600" />
-                  <input type="text" defaultValue="Auto Premium SP" className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 pl-12 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
+                  <input 
+                    type="text" 
+                    value={profileData.name} 
+                    onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 pl-12 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all" 
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">E-mail de Contato</label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-4 w-4 h-4 text-slate-600" />
-                  <input type="email" defaultValue="contato@autopremium.com" className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 pl-12 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
+                  <input 
+                    type="email" 
+                    value={profileData.email} 
+                    onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 pl-12 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all" 
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Telefone / WhatsApp</label>
                 <div className="relative">
                   <Smartphone className="absolute left-4 top-4 w-4 h-4 text-slate-600" />
-                  <input type="text" defaultValue="(11) 99999-8888" className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 pl-12 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
+                  <input 
+                    type="text" 
+                    value={profileData.phone} 
+                    onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 pl-12 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all" 
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Endereço Físico</label>
                 <div className="relative">
                   <MapPin className="absolute left-4 top-4 w-4 h-4 text-slate-600" />
-                  <input type="text" defaultValue="Av. Europa, 1200 - Jardins" className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 pl-12 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
+                  <input 
+                    type="text" 
+                    value={profileData.address} 
+                    onChange={(e) => setProfileData({ ...profileData, address: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 pl-12 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all" 
+                  />
                 </div>
               </div>
             </div>
@@ -177,7 +223,19 @@ function SettingsModal({ id, onClose }: { id: string, onClose: () => void }) {
               <h4 className="text-sm font-bold text-slate-300">Cores da Identidade</h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {['#3b82f6', '#10b981', '#8b5cf6', '#f43f5e'].map((color) => (
-                  <button key={color} className="flex flex-col items-center gap-3 p-4 bg-slate-900 border border-slate-800 rounded-2xl hover:border-slate-700 transition-all group">
+                  <button 
+                    key={color} 
+                    onClick={() => setPrimaryColor(color)}
+                    className={cn(
+                      "flex flex-col items-center gap-3 p-4 bg-slate-900 border rounded-2xl transition-all group relative",
+                      primaryColor === color ? "border-blue-500 ring-1 ring-blue-500/50" : "border-slate-800 hover:border-slate-700"
+                    )}
+                  >
+                    {primaryColor === color && (
+                      <div className="absolute top-2 right-2">
+                        <CheckCircle2 className="w-4 h-4 text-blue-500" />
+                      </div>
+                    )}
                     <div className="w-10 h-10 rounded-full shadow-lg" style={{ backgroundColor: color }} />
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{color}</span>
                   </button>
@@ -188,19 +246,32 @@ function SettingsModal({ id, onClose }: { id: string, onClose: () => void }) {
             <div className="space-y-4">
               <h4 className="text-sm font-bold text-slate-300">Tema da Interface</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <button className="p-4 bg-slate-900 border-2 border-blue-600 rounded-2xl text-left relative overflow-hidden group">
+                <button 
+                  onClick={() => setTheme('dark')}
+                  className={cn(
+                    "p-4 bg-slate-900 border-2 rounded-2xl text-left relative overflow-hidden group transition-all",
+                    theme === 'dark' ? "border-blue-600" : "border-slate-800 opacity-50 hover:bg-slate-800"
+                  )}
+                >
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-bold text-white uppercase tracking-widest">Modern Dark</span>
-                    <CheckCircle2 className="w-4 h-4 text-blue-500" />
+                    <span className={cn("text-xs font-bold uppercase tracking-widest", theme === 'dark' ? "text-white" : "text-slate-400")}>Modern Dark</span>
+                    {theme === 'dark' && <CheckCircle2 className="w-4 h-4 text-blue-500" />}
                   </div>
                   <div className="flex gap-2">
                     <div className="w-12 h-2 bg-slate-800 rounded-full" />
                     <div className="w-8 h-2 bg-blue-600 rounded-full" />
                   </div>
                 </button>
-                <button className="p-4 bg-slate-900 border border-slate-800 rounded-2xl text-left opacity-50 hover:bg-slate-800 transition-all group">
+                <button 
+                  onClick={() => setTheme('light')}
+                  className={cn(
+                    "p-4 bg-slate-900 border rounded-2xl text-left transition-all group",
+                    theme === 'light' ? "border-blue-600 ring-2 ring-blue-600/20" : "border-slate-800 opacity-50 hover:bg-slate-800"
+                  )}
+                >
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Clean Light</span>
+                    <span className={cn("text-xs font-bold uppercase tracking-widest", theme === 'light' ? "text-white" : "text-slate-400")}>Clean Light</span>
+                    {theme === 'light' && <CheckCircle2 className="w-4 h-4 text-blue-500" />}
                   </div>
                   <div className="flex gap-2">
                     <div className="w-12 h-2 bg-slate-200 rounded-full" />
@@ -253,11 +324,16 @@ function SettingsModal({ id, onClose }: { id: string, onClose: () => void }) {
               <h3 className="text-xl font-bold text-white mb-2">Conectar WhatsApp API</h3>
               <p className="text-slate-500 text-sm max-w-xs mb-8">Escaneie o QR Code abaixo com seu WhatsApp Business para conectar a API oficial.</p>
               
-              <div className="w-48 h-48 bg-white p-4 rounded-3xl shadow-2xl mb-8 relative group">
-                <div className="absolute inset-0 bg-white/95 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                   <button className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all hover:bg-emerald-500">Gerar Novo QR</button>
+              <div className="w-48 h-48 bg-white p-4 rounded-3xl shadow-2xl mb-8 relative group overflow-hidden">
+                <div className="absolute inset-0 bg-white/95 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                   <button 
+                    onClick={() => setQrCodeData(`AUTOSAAS_CONNECT_${Date.now()}`)}
+                    className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all hover:bg-emerald-500 active:scale-95"
+                  >
+                    Gerar Novo QR
+                  </button>
                 </div>
-                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=AUTOSAAS_CONNECT_${Date.now()}`} alt="QR Code" className="w-full h-full grayscale opacity-80" />
+                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrCodeData}`} alt="QR Code" className="w-full h-full grayscale opacity-80" />
               </div>
               
               <div className="flex items-center gap-2 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">
@@ -270,9 +346,18 @@ function SettingsModal({ id, onClose }: { id: string, onClose: () => void }) {
               <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Configurações Avançadas</h4>
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-300">Resposta Automática (AI)</span>
-                <div className="w-10 h-6 bg-blue-600 rounded-full relative">
-                  <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full transition-all" />
-                </div>
+                <button 
+                  onClick={() => setAiResponse(!aiResponse)}
+                  className={cn(
+                    "w-10 h-6 rounded-full relative transition-colors duration-200",
+                    aiResponse ? "bg-blue-600" : "bg-slate-700"
+                  )}
+                >
+                  <div className={cn(
+                    "absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-200",
+                    aiResponse ? "right-1" : "left-1"
+                  )} />
+                </button>
               </div>
             </div>
           </div>
@@ -280,19 +365,43 @@ function SettingsModal({ id, onClose }: { id: string, onClose: () => void }) {
       case 'crm':
         return (
           <div className="space-y-6">
-            <h3 className="text-white font-bold mb-4">Pipeline de Vendas</h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-white font-bold">Pipeline de Vendas</h3>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-slate-900 px-3 py-1 rounded-full border border-slate-800">{pipeline.length} Etapas</span>
+            </div>
             <div className="space-y-3">
-              {['Novo Lead', 'Qualificados', 'Visita Agendada', 'Proposta Enviada', 'Fechamento'].map((stage, i) => (
-                <div key={stage} className="flex items-center gap-4 p-4 bg-slate-900 border border-slate-800 rounded-2xl group">
+              {pipeline.map((stage, i) => (
+                <motion.div 
+                  layout
+                  key={stage + i} 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-4 p-4 bg-slate-900 border border-slate-800 rounded-2xl group hover:border-slate-700 transition-all"
+                >
                   <div className="w-8 h-8 bg-slate-800 rounded-xl flex items-center justify-center text-xs font-bold text-slate-500 group-hover:text-white transition-colors">{i + 1}</div>
-                  <input type="text" defaultValue={stage} className="flex-1 bg-transparent border-none text-slate-200 text-sm font-bold focus:outline-none" />
-                  <div className="flex gap-2">
-                    <button className="p-2 text-slate-600 hover:text-white transition-colors"><Trash2 className="w-4 h-4" /></button>
-                    <button className="p-2 text-slate-600 hover:text-white transition-colors cursor-grab"><ChevronRight className="w-4 h-4 rotate-90" /></button>
+                  <input 
+                    type="text" 
+                    value={stage} 
+                    onChange={(e) => updateStage(i, e.target.value)}
+                    className="flex-1 bg-transparent border-none text-slate-200 text-sm font-bold focus:outline-none" 
+                  />
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button 
+                      onClick={() => removeStage(i)}
+                      className="p-2 text-slate-600 hover:text-rose-500 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    <button className="p-2 text-slate-600 hover:text-white transition-colors cursor-grab">
+                      <ChevronRight className="w-4 h-4 rotate-90" />
+                    </button>
                   </div>
-                </div>
+                </motion.div>
               ))}
-              <button className="w-full p-4 border-2 border-dashed border-slate-800 rounded-2xl text-slate-500 text-xs font-bold hover:border-blue-500 hover:text-blue-500 transition-all flex items-center justify-center gap-2">
+              <button 
+                onClick={addStage}
+                className="w-full p-4 border-2 border-dashed border-slate-800 rounded-2xl text-slate-500 text-xs font-bold hover:border-blue-500 hover:text-blue-500 transition-all flex items-center justify-center gap-2 active:scale-95"
+              >
                 <Plus className="w-4 h-4" /> Adicionar Etapa
               </button>
             </div>
@@ -449,16 +558,23 @@ function SettingsModal({ id, onClose }: { id: string, onClose: () => void }) {
 
         <div className="p-8 md:p-10 border-t border-slate-800 shrink-0 flex gap-4">
            <button 
+            disabled={isSaving}
             onClick={onClose}
-            className="flex-1 py-4 bg-slate-900 text-slate-400 font-bold rounded-2xl border border-slate-800 hover:bg-slate-800 transition-all uppercase tracking-widest text-[10px]"
+            className="flex-1 py-4 bg-slate-900 text-slate-400 font-bold rounded-2xl border border-slate-800 hover:bg-slate-800 transition-all uppercase tracking-widest text-[10px] disabled:opacity-50"
           >
             Descartar
           </button>
           <button 
-            onClick={onClose}
-            className="flex-1 py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/20 hover:bg-blue-500 transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 active:scale-95"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex-1 py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/20 hover:bg-blue-500 transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
           >
-            <Save className="w-4 h-4" /> Salvar Alterações
+            {isSaving ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            <span>{isSaving ? 'Salvando...' : 'Salvar Alterações'}</span>
           </button>
         </div>
       </motion.div>
