@@ -11,20 +11,26 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    function hasProfile() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function getUser(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data;
     }
 
     function isMaster() {
-      return isSignedIn() && getUserData().role == 'master';
+      return hasProfile() && 
+             (getUser(request.auth.uid).role == 'master' || 
+              (request.auth.token.email == 'ridam.auditor@gmail.com' && request.auth.token.email_verified == true));
     }
 
     function isStoreAdmin(storeId) {
-      return isSignedIn() && (getUserData().role == 'admin' && getUserData().storeId == storeId) || isMaster();
+      return hasProfile() && ((getUser(request.auth.uid).role == 'admin' && getUser(request.auth.uid).storeId == storeId) || isMaster());
     }
 
     function isStoreMember(storeId) {
-      return isSignedIn() && (getUserData().storeId == storeId) || isMaster();
+      return hasProfile() && ((getUser(request.auth.uid).storeId == storeId) || isMaster());
     }
 
     function isValidId(id) {
@@ -39,29 +45,45 @@ service cloud.firestore {
 
     // Users
     match /users/{userId} {
-      allow read: if isSignedIn() && (request.auth.uid == userId || isMaster() || (getUserData().role == 'admin' && getUserData().storeId == resource.data.storeId));
-      allow write: if isMaster() || (isSignedIn() && getUserData().role == 'admin' && request.resource.data.storeId == getUserData().storeId);
-      allow create: if isSignedIn(); // Allow initial profile creation during signup if we implement it, but role should be restricted
+      function isValidUser(data) {
+        return data.keys().hasAll(['uid', 'name', 'email', 'role', 'status']) &&
+               data.uid == userId &&
+               data.role in ['master', 'admin', 'sales'] &&
+               data.status in ['active', 'inactive'];
+      }
+
+      allow read: if isSignedIn() && (request.auth.uid == userId || isMaster());
+      allow create: if isSignedIn() && request.auth.uid == userId && 
+                      isValidUser(request.resource.data) && 
+                      request.resource.data.role != 'master'; // Prevent self-promoting to master
+      allow update: if isMaster() || 
+                      (isSignedIn() && request.auth.uid == userId && 
+                       request.resource.data.role == resource.data.role);
+    }
+
+    // Connection Test
+    match /test/connection {
+      allow read: if isSignedIn();
     }
 
     // Vehicles
     match /vehicles/{vehicleId} {
       allow read: if isSignedIn() && isStoreMember(resource.data.storeId);
-      allow list: if isSignedIn() && (isMaster() || resource.data.storeId == getUserData().storeId);
+      allow list: if isSignedIn() && (isMaster() || resource.data.storeId == getUser(request.auth.uid).storeId);
       allow write: if isSignedIn() && isStoreMember(request.resource.data.storeId);
     }
 
     // Leads
     match /leads/{leadId} {
       allow read: if isSignedIn() && isStoreMember(resource.data.storeId);
-      allow list: if isSignedIn() && (isMaster() || resource.data.storeId == getUserData().storeId);
+      allow list: if isSignedIn() && (isMaster() || resource.data.storeId == getUser(request.auth.uid).storeId);
       allow write: if isSignedIn() && isStoreMember(request.resource.data.storeId);
     }
 
     // Conversations
     match /conversations/{convId} {
       allow read: if isSignedIn() && isStoreMember(resource.data.storeId);
-      allow list: if isSignedIn() && (isMaster() || resource.data.storeId == getUserData().storeId);
+      allow list: if isSignedIn() && (isMaster() || resource.data.storeId == getUser(request.auth.uid).storeId);
       allow write: if isSignedIn() && isStoreMember(request.resource.data.storeId);
     }
   }

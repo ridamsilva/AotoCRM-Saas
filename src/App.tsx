@@ -12,7 +12,7 @@ import { Car, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 function AppContent() {
-  const { user, profile, loading, signIn } = useAuth();
+  const { user, profile, loading, error, signIn, clearError } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
 
   if (loading) {
@@ -39,17 +39,42 @@ function AppContent() {
             <p className="text-slate-400 mt-3 text-sm">Gestão automotiva moderna e inteligente para sua loja</p>
           </div>
 
+          <AnimatePresence mode="wait">
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mb-6 p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-xs text-rose-400 leading-relaxed relative group"
+              >
+                <p>{error}</p>
+                <button 
+                  onClick={clearError}
+                  className="absolute top-2 right-2 text-rose-500 hover:text-rose-400 transition-colors"
+                >
+                  &times;
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <button
             onClick={signIn}
-            className="w-full flex items-center justify-center gap-3 bg-slate-800 border border-slate-700 py-4 px-4 rounded-2xl font-bold text-slate-200 hover:bg-slate-700 transition-all duration-200 shadow-lg shadow-black/20"
+            className="w-full flex items-center justify-center gap-3 bg-slate-800 border border-slate-700 py-4 px-4 rounded-2xl font-bold text-slate-200 hover:bg-slate-700 transition-all duration-200 shadow-lg shadow-black/20 group active:scale-95"
           >
-            <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="Google" />
+            <img src="https://www.google.com/favicon.ico" className="w-5 h-5 group-hover:scale-110 transition-transform" alt="Google" />
             <span>Entrar com Google</span>
           </button>
 
           <p className="mt-10 text-center text-[10px] text-slate-500 uppercase tracking-widest font-bold">
             Powered by AutoSaaS Intelligence
           </p>
+          
+          <div className="mt-8 p-4 bg-blue-500/5 border border-blue-500/10 rounded-2xl">
+            <p className="text-[9px] text-slate-600 text-center font-medium leading-normal">
+              Nota: Se você está usando o domínio da Vercel, certifique-se de adicioná-lo em "Authorized Domains" no Console do Firebase.
+            </p>
+          </div>
         </motion.div>
       </div>
     );
