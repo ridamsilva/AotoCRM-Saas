@@ -122,8 +122,31 @@ function SettingsModal({ id, onClose }: { id: string, onClose: () => void }) {
   const [theme, setTheme] = useState('dark');
   const [isSaving, setIsSaving] = useState(false);
   
+  // Profile state
+  const [profileData, setProfileData] = useState({
+    name: 'Auto Premium SP',
+    email: 'contato@autopremium.com',
+    phone: '(11) 99999-8888',
+    address: 'Av. Europa, 1200 - Jardins'
+  });
+  
   // CRM state
   const [pipeline, setPipeline] = useState(['Novo Lead', 'Qualificados', 'Visita Agendada', 'Proposta Enviada', 'Fechamento']);
+  
+  // Notifications state
+  const [notifications, setNotifications] = useState({
+    whatsapp: true,
+    push: false,
+    daily: true
+  });
+
+  // Users state
+  const [users, setUsers] = useState([
+    { name: 'Marcos Oliveira', role: 'Proprietário', email: 'marcos@auto.com', active: true },
+    { name: 'Juliana Silva', role: 'Gerente Comercial', email: 'juliana@auto.com', active: true },
+    { name: 'Rodrigo Santos', role: 'Vendedor Sênior', email: 'rodrigo@auto.com', active: true },
+    { name: 'Ana Paula', role: 'Vendedora', email: 'ana@auto.com', active: false }
+  ]);
   
   // WhatsApp state
   const [qrCodeData, setQrCodeData] = useState(`AUTOSAAS_CONNECT_${Date.now()}`);
@@ -142,6 +165,14 @@ function SettingsModal({ id, onClose }: { id: string, onClose: () => void }) {
 
   const addStage = () => {
     setPipeline([...pipeline, 'Nova Etapa']);
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    setIsSaving(false);
+    onClose();
   };
 
   const renderContent = () => {
@@ -413,18 +444,27 @@ function SettingsModal({ id, onClose }: { id: string, onClose: () => void }) {
             <div className="space-y-4">
               <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Alertas do Sistema</h4>
               {[
-                { label: 'Novos Leads (WhatsApp)', desc: 'Envie um alerta para o gerente quando um novo lead entrar.' },
-                { label: 'Follow-up Atrasado', desc: 'Notifique o vendedor via push quando houver tarefas pendentes.' },
-                { label: 'Relatório Diário', desc: 'Resumo das vendas e leads às 08:00 diariamente.' }
+                { id: 'whatsapp', label: 'Novos Leads (WhatsApp)', desc: 'Envie um alerta para o gerente quando um novo lead entrar.' },
+                { id: 'push', label: 'Follow-up Atrasado', desc: 'Notifique o vendedor via push quando houver tarefas pendentes.' },
+                { id: 'daily', label: 'Relatório Diário', desc: 'Resumo das vendas e leads às 08:00 diariamente.' }
               ].map((item) => (
-                <div key={item.label} className="flex items-start justify-between p-5 bg-slate-900 border border-slate-800 rounded-3xl">
+                <div key={item.id} className="flex items-start justify-between p-5 bg-slate-900 border border-slate-800 rounded-3xl">
                   <div className="space-y-1">
                     <h5 className="text-sm font-bold text-slate-200">{item.label}</h5>
                     <p className="text-xs text-slate-500 font-medium">{item.desc}</p>
                   </div>
-                  <div className="w-10 h-6 bg-slate-800 rounded-full relative cursor-pointer hover:bg-slate-700 transition-colors shrink-0">
-                    <div className="absolute left-1 top-1 w-4 h-4 bg-slate-500 rounded-full" />
-                  </div>
+                  <button 
+                    onClick={() => setNotifications({ ...notifications, [item.id]: !notifications[item.id as keyof typeof notifications] })}
+                    className={cn(
+                      "w-10 h-6 rounded-full relative transition-colors duration-200 shrink-0",
+                      notifications[item.id as keyof typeof notifications] ? "bg-blue-600" : "bg-slate-700"
+                    )}
+                  >
+                    <div className={cn(
+                      "absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-200",
+                      notifications[item.id as keyof typeof notifications] ? "right-1" : "left-1"
+                    )} />
+                  </button>
                 </div>
               ))}
             </div>
@@ -434,18 +474,13 @@ function SettingsModal({ id, onClose }: { id: string, onClose: () => void }) {
         return (
           <div className="space-y-6">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Equipe da Loja (4)</h4>
+              <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Equipe da Loja ({users.length})</h4>
               <button className="p-2 bg-blue-600/10 text-blue-400 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-blue-600/20 transition-all flex items-center gap-2">
                 <Plus className="w-3 h-3" /> Convidar
               </button>
             </div>
             <div className="space-y-3">
-              {[
-                { name: 'Marcos Oliveira', role: 'Proprietário', email: 'marcos@auto.com' },
-                { name: 'Juliana Silva', role: 'Gerente Comercial', email: 'juliana@auto.com' },
-                { name: 'Rodrigo Santos', role: 'Vendedor Sênior', email: 'rodrigo@auto.com' },
-                { name: 'Ana Paula', role: 'Vendedora', email: 'ana@auto.com' }
-              ].map((user) => (
+              {users.map((user) => (
                 <div key={user.email} className="flex items-center gap-4 p-4 bg-slate-900 border border-slate-800 rounded-2xl hover:bg-slate-800/40 transition-colors group">
                   <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center text-sm font-bold text-slate-400 group-hover:text-blue-400 group-hover:bg-blue-600/10 transition-all">
                     {user.name.charAt(0)}
@@ -454,7 +489,9 @@ function SettingsModal({ id, onClose }: { id: string, onClose: () => void }) {
                     <h5 className="text-sm font-bold text-slate-200">{user.name}</h5>
                     <p className="text-[10px] text-slate-500 font-medium uppercase tracking-widest mt-0.5">{user.role}</p>
                   </div>
-                  <div className="text-[10px] font-bold text-slate-600 uppercase tracking-widest hidden md:block">Ativo há 2h</div>
+                  <div className="text-[10px] font-bold text-slate-600 uppercase tracking-widest hidden md:block">
+                    {user.active ? 'Ativo agora' : 'Inativo'}
+                  </div>
                   <ChevronRight className="w-4 h-4 text-slate-800 group-hover:text-slate-400 transition-colors" />
                 </div>
               ))}
