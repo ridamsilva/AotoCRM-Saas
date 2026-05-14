@@ -1,10 +1,8 @@
-import { GoogleGenerativeAI } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
 export async function getSmartReply(conversationId: string, lastMessages: any[]) {
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-  
   const prompt = `
     Você é um assistente comercial de uma loja de veículos premium.
     Baseado no histórico de conversa abaixo, sugira 3 respostas curtas e profissionais para o vendedor enviar ao cliente via WhatsApp.
@@ -18,11 +16,13 @@ export async function getSmartReply(conversationId: string, lastMessages: any[])
   `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash-exp",
+      contents: prompt,
+    });
+    const text = response.text || '';
     // Clean JSON if needed
-    const cleanJson = text.replace(/```json|```/g, '');
+    const cleanJson = text.replace(/```json|```/g, '').trim();
     return JSON.parse(cleanJson);
   } catch (error) {
     console.error("Error getting smart reply:", error);
@@ -31,8 +31,6 @@ export async function getSmartReply(conversationId: string, lastMessages: any[])
 }
 
 export async function scoreLead(leadData: any) {
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-  
   const prompt = `
     Analise o lead automotivo abaixo e atribua um score de 0 a 100 baseado na probabilidade de fechamento.
     Considere a fonte, o interesse e o comportamento (se disponível).
@@ -44,9 +42,12 @@ export async function scoreLead(leadData: any) {
   `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return parseInt(response.text().trim(), 10) || 50;
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash-exp",
+      contents: prompt,
+    });
+    const text = response.text || '';
+    return parseInt(text.trim(), 10) || 50;
   } catch (error) {
     console.error("Error scoring lead:", error);
     return 50;
@@ -54,8 +55,6 @@ export async function scoreLead(leadData: any) {
 }
 
 export async function summarizeConversation(messages: any[]) {
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-  
   const prompt = `
     Resuma a negociação abaixo em um parágrafo curto, destacando:
     1. Veículo de interesse
@@ -67,9 +66,11 @@ export async function summarizeConversation(messages: any[]) {
   `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash-exp",
+      contents: prompt,
+    });
+    return response.text || "Não foi possível gerar o resumo.";
   } catch (error) {
     console.error("Error summarizing conversation:", error);
     return "Não foi possível gerar o resumo.";

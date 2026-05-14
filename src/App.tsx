@@ -5,6 +5,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Inventory } from './pages/Inventory';
 import { Leads } from './pages/Leads';
 import { Chat } from './pages/Chat';
+import { Reports } from './pages/Reports';
 import { MasterPanel } from './pages/MasterPanel';
 import { Settings } from './pages/Settings';
 import { Car, Loader2 } from 'lucide-react';
@@ -56,13 +57,14 @@ function AppContent() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'dashboard': return <Dashboard />;
+      case 'dashboard': return <Dashboard onTabChange={setActiveTab} />;
       case 'inventory': return <Inventory />;
       case 'leads': return <Leads />;
       case 'chat': return <Chat />;
+      case 'reports': return <Reports />;
       case 'master': return <MasterPanel />;
       case 'settings': return <Settings />;
-      default: return <Dashboard />;
+      default: return <Dashboard onTabChange={setActiveTab} />;
     }
   };
 

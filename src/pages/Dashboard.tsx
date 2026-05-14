@@ -33,12 +33,16 @@ const data = [
   { name: 'Dom', sales: 1, leads: 8 },
 ];
 
-export function Dashboard() {
+interface DashboardProps {
+  onTabChange?: (tab: string) => void;
+}
+
+export function Dashboard({ onTabChange }: DashboardProps) {
   const stats = [
-    { label: 'Vendas do Mês', value: 'R$ 2.450.000', change: '+12.5%', isUp: true, icon: TrendingUp, color: 'bg-emerald-500' },
-    { label: 'Novos Leads', value: '142', change: '+18.2%', isUp: true, icon: Users, color: 'bg-blue-500' },
-    { label: 'Estoque Atual', value: '48', change: '-2.4%', isUp: false, icon: Car, color: 'bg-indigo-500' },
-    { label: 'Conversas Ativas', value: '26', change: '+5.1%', isUp: true, icon: MessageSquare, color: 'bg-orange-500' },
+    { id: 'reports', label: 'Vendas do Mês', value: 'R$ 2.450.000', change: '+12.5%', isUp: true, icon: TrendingUp, color: 'bg-emerald-500' },
+    { id: 'leads', label: 'Novos Leads', value: '142', change: '+18.2%', isUp: true, icon: Users, color: 'bg-blue-500' },
+    { id: 'inventory', label: 'Estoque Atual', value: '48', change: '-2.4%', isUp: false, icon: Car, color: 'bg-indigo-500' },
+    { id: 'chat', label: 'Conversas Ativas', value: '26', change: '+5.1%', isUp: true, icon: MessageSquare, color: 'bg-orange-500' },
   ];
 
   return (
@@ -50,9 +54,13 @@ export function Dashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat) => (
-          <div key={stat.label} className="bg-bento-card p-6 rounded-3xl border border-slate-800 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-300">
+          <div 
+            key={stat.label} 
+            onClick={() => onTabChange?.(stat.id)}
+            className="bg-bento-card p-6 rounded-3xl border border-slate-800 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-300 cursor-pointer group"
+          >
             <div className="flex items-start justify-between">
-              <div className={`p-3 rounded-2xl ${stat.color} text-white shadow-lg shadow-black/20`}>
+              <div className={`p-3 rounded-2xl ${stat.color} text-white shadow-lg shadow-black/20 group-hover:scale-110 transition-transform`}>
                 <stat.icon className="w-6 h-6" />
               </div>
               <div className={`flex items-center gap-1 text-xs font-bold ${stat.isUp ? 'text-emerald-400' : 'text-rose-400'}`}>
@@ -126,7 +134,12 @@ export function Dashboard() {
       <div className="bg-bento-card rounded-3xl border border-slate-800 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-slate-800 flex items-center justify-between">
           <h3 className="font-bold text-white tracking-tight">Últimos Veículos Adicionados</h3>
-          <button className="text-blue-500 text-sm font-bold uppercase tracking-widest hover:text-blue-400 transition-colors">Ver todos</button>
+          <button 
+            onClick={() => onTabChange?.('inventory')}
+            className="text-blue-500 text-sm font-bold uppercase tracking-widest hover:text-blue-400 transition-colors"
+          >
+            Ver todos
+          </button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">

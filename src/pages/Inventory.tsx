@@ -13,10 +13,12 @@ import {
   Edit2
 } from 'lucide-react';
 import { formatCurrency } from '../lib/utils';
+import { motion, AnimatePresence } from 'motion/react';
 
 export function Inventory() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [isLoading, setIsLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   const vehicles = [
     { id: 1, make: 'BMW', model: '320i', version: 'M Sport', year: 2023, price: 289900, mileage: 12000, status: 'available', image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&q=80&w=800' },
@@ -27,6 +29,12 @@ export function Inventory() {
     { id: 6, make: 'Audi', model: 'Q5', version: 'Performance', year: 2021, price: 295000, mileage: 38000, status: 'available', image: 'https://images.unsplash.com/photo-1606152421802-db97b9c7a11b?auto=format&fit=crop&q=80&w=800' },
   ];
 
+  const filteredVehicles = vehicles.filter(v => 
+    v.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    v.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    v.version.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -34,7 +42,10 @@ export function Inventory() {
           <h1 className="text-2xl font-bold text-white tracking-tight">Estoque de Veículos</h1>
           <p className="text-slate-400">Gerencie seus veículos e publicações em marketplaces.</p>
         </div>
-        <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 rounded-2xl font-bold shadow-lg shadow-blue-600/20 transition-all active:scale-95">
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 rounded-2xl font-bold shadow-lg shadow-blue-600/20 transition-all active:scale-95"
+        >
           <Plus className="w-5 h-5" />
           Novo Veículo
         </button>
@@ -46,6 +57,8 @@ export function Inventory() {
           <input 
             type="text" 
             placeholder="Buscar por marca, modelo, ano ou placa..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-12 pr-4 py-3 bg-slate-900/50 border border-slate-700 rounded-2xl text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-slate-900 transition-all font-medium"
           />
         </div>
@@ -75,7 +88,7 @@ export function Inventory() {
 
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {vehicles.map((v) => (
+          {filteredVehicles.map((v) => (
             <div key={v.id} className="bg-bento-card rounded-3xl border border-slate-800 shadow-sm overflow-hidden group hover:shadow-2xl hover:shadow-blue-500/5 transition-all duration-500">
               <div className="relative h-56">
                 <img src={v.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={v.model} />
@@ -133,7 +146,7 @@ export function Inventory() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50">
-              {vehicles.map((v) => (
+              {filteredVehicles.map((v) => (
                 <tr key={v.id} className="hover:bg-slate-900/40 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
@@ -165,6 +178,75 @@ export function Inventory() {
           </table>
         </div>
       )}
+
+      {/* Modal Placeholder */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsModalOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative bg-bento-card w-full max-w-2xl rounded-[2.5rem] border border-slate-800 shadow-2xl p-10 overflow-hidden"
+            >
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20">
+                  <Plus className="text-white w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white tracking-tight">Novo Veículo</h2>
+                  <p className="text-slate-500 text-sm">Preencha os dados básicos para cadastrar no estoque.</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <div className="space-y-4">
+                   <div>
+                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Marca / Modelo</label>
+                     <input type="text" placeholder="Ex: BMW 320i" className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
+                   </div>
+                   <div>
+                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Preço de Venda</label>
+                     <input type="text" placeholder="R$ 0,00" className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
+                   </div>
+                </div>
+                <div className="space-y-4">
+                   <div>
+                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Ano</label>
+                     <input type="text" placeholder="2024/2024" className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
+                   </div>
+                   <div>
+                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Quilometragem</label>
+                     <input type="text" placeholder="0 km" className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
+                   </div>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 py-4 bg-slate-800 text-slate-300 font-bold rounded-2xl border border-slate-700 hover:bg-slate-700 transition-all uppercase tracking-widest text-sm"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/20 hover:bg-blue-500 transition-all uppercase tracking-widest text-sm"
+                >
+                  Salvar
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -14,9 +14,12 @@ import {
   AlertCircle 
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { motion, AnimatePresence } from 'motion/react';
 
 export function MasterPanel() {
   const [activeTab, setActiveTab] = useState<'stores' | 'subscriptions' | 'plans'>('stores');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const stores = [
     { id: 1, name: 'Auto Premium SP', owner: 'marcos@auto.com', plan: 'Pro', status: 'active', revenue: 'R$ 1.250,00', users: 8, vehicles: 45 },
@@ -24,6 +27,11 @@ export function MasterPanel() {
     { id: 3, name: 'Grand Motors', owner: 'adm@grand.com', plan: 'Enterprise', status: 'past_due', revenue: 'R$ 3.500,00', users: 25, vehicles: 120 },
     { id: 4, name: 'Classic Cars', owner: 'julio@classic.com', plan: 'Pro', status: 'suspended', revenue: 'R$ 0,00', users: 5, vehicles: 22 },
   ];
+
+  const filteredStores = stores.filter(s => 
+    s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    s.owner.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="space-y-8">
@@ -37,7 +45,10 @@ export function MasterPanel() {
           </h1>
           <p className="text-slate-400 mt-2">Controle total sobre a plataforma SaaS e suas assinaturas.</p>
         </div>
-        <button className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-3 rounded-2xl font-bold shadow-lg shadow-indigo-600/20 transition-all active:scale-95 text-sm uppercase tracking-widest">
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-3 rounded-2xl font-bold shadow-lg shadow-indigo-600/20 transition-all active:scale-95 text-sm uppercase tracking-widest"
+        >
           <Plus className="w-5 h-5" />
           Nova Loja
         </button>
@@ -114,6 +125,8 @@ export function MasterPanel() {
                 <input 
                   type="text" 
                   placeholder="Buscar..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-11 pr-5 py-2.5 bg-slate-900 border border-slate-700 rounded-2xl text-xs font-bold uppercase tracking-widest text-slate-300 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all shadow-xl" 
                 />
              </div>
@@ -133,7 +146,7 @@ export function MasterPanel() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50">
-              {stores.map((store) => (
+              {filteredStores.map((store) => (
                 <tr key={store.id} className="hover:bg-slate-800/40 transition-colors group">
                   <td className="px-6 py-5">
                     <div className="flex flex-col">
@@ -192,6 +205,79 @@ export function MasterPanel() {
           </table>
         </div>
       </div>
+
+      {/* Modal Placeholder */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsModalOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative bg-bento-card w-full max-w-2xl rounded-[2.5rem] border border-slate-800 shadow-2xl p-10 overflow-hidden"
+            >
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-600/20">
+                  <Building2 className="text-white w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white tracking-tight">Nova Loja SaaS</h2>
+                  <p className="text-slate-500 text-sm">Provisionar novo ambiente isolado para lojista.</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <div className="space-y-4">
+                   <div>
+                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Nome da Empresa</label>
+                     <input type="text" placeholder="Ex: Premium Veículos" className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50" />
+                   </div>
+                   <div>
+                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Email do Administrador</label>
+                     <input type="email" placeholder="admin@empresa.com" className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50" />
+                   </div>
+                </div>
+                <div className="space-y-4">
+                   <div>
+                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Plano Inicial</label>
+                     <select className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+                        <option>Basic Plan</option>
+                        <option>Pro Plan</option>
+                        <option>Enterprise</option>
+                     </select>
+                   </div>
+                   <div>
+                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Região do Banco</label>
+                     <input type="text" value="us-east1 (AWS)" disabled className="w-full bg-slate-900/50 border border-slate-800 rounded-2xl p-4 text-slate-500 cursor-not-allowed" />
+                   </div>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 py-4 bg-slate-800 text-slate-300 font-bold rounded-2xl border border-slate-700 hover:bg-slate-700 transition-all uppercase tracking-widest text-sm"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 py-4 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-indigo-600/20 hover:bg-indigo-500 transition-all uppercase tracking-widest text-sm"
+                >
+                  Criar Instância
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

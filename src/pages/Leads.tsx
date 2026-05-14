@@ -17,9 +17,12 @@ import {
   Globe
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { motion, AnimatePresence } from 'motion/react';
 
 export function Leads() {
   const [viewMode, setViewMode] = useState<'pipeline' | 'list'>('pipeline');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   const stages = [
     { id: 'new', label: 'Novos', color: 'bg-blue-500' },
@@ -35,6 +38,12 @@ export function Leads() {
     { id: 4, name: 'Ana Beatriz', phone: '(31) 98877-6655', vehicle: 'Honda Civic', score: 78, stage: 'negotiation', source: 'Site Próprio', createdAt: '2 dias atrás' },
     { id: 5, name: 'Carlos Eduardo', phone: '(41) 99911-2233', vehicle: 'Mercedes-Benz C300', score: 45, stage: 'closing', source: 'Google', createdAt: '3 dias atrás' },
   ];
+
+  const filteredLeads = leads.filter(l => 
+    l.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    l.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    l.vehicle.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const getSourceIcon = (source: string) => {
     switch (source) {
@@ -69,6 +78,8 @@ export function Leads() {
           <input 
             type="text" 
             placeholder="Buscar por nome, telefone ou email..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-12 pr-4 py-3 bg-slate-900/50 border border-slate-700 rounded-2xl text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-slate-900 transition-all font-medium"
           />
         </div>
@@ -92,7 +103,7 @@ export function Leads() {
                   <div className={`w-3 h-3 rounded-full ${stage.color} shadow-[0_0_8px_rgba(0,0,0,0.5)]`}></div>
                   <h3 className="font-bold text-slate-200 tracking-tight">{stage.label}</h3>
                   <span className="bg-slate-800 text-slate-400 text-[10px] px-2 py-0.5 rounded-lg border border-slate-700 font-bold uppercase tracking-widest">
-                    {leads.filter(l => l.stage === stage.id).length}
+                    {filteredLeads.filter(l => l.stage === stage.id).length}
                   </span>
                 </div>
                 <button className="text-slate-600 hover:text-white transition-colors">
@@ -101,7 +112,7 @@ export function Leads() {
               </div>
               
               <div className="space-y-4">
-                {leads.filter(l => l.stage === stage.id).map((lead) => (
+                {filteredLeads.filter(l => l.stage === stage.id).map((lead) => (
                   <div key={lead.id} className="bg-bento-card p-5 rounded-3xl border border-slate-800 shadow-sm hover:shadow-2xl hover:shadow-blue-500/5 hover:-translate-y-1 transition-all duration-300 cursor-pointer group">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex items-center gap-2 px-2 py-1 bg-slate-900 rounded-lg border border-slate-800">
@@ -133,7 +144,10 @@ export function Leads() {
                   </div>
                 ))}
                 
-                <button className="w-full py-5 border-2 border-dashed border-slate-800 rounded-3xl text-slate-600 hover:text-blue-400 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all flex items-center justify-center gap-2 group">
+                <button 
+                  onClick={() => setIsModalOpen(true)}
+                  className="w-full py-5 border-2 border-dashed border-slate-800 rounded-3xl text-slate-600 hover:text-blue-400 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all flex items-center justify-center gap-2 group"
+                >
                   <Plus className="w-5 h-5 transition-transform group-hover:scale-110" />
                   <span className="text-[10px] font-bold uppercase tracking-widest">Adicionar Lead</span>
                 </button>
@@ -154,7 +168,7 @@ export function Leads() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50">
-              {leads.map((lead) => (
+              {filteredLeads.map((lead) => (
                 <tr key={lead.id} className="hover:bg-slate-900/40 transition-colors group">
                   <td className="px-6 py-4">
                     <div>
@@ -189,6 +203,81 @@ export function Leads() {
           </table>
         </div>
       )}
+
+      {/* Modal Placeholder */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsModalOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative bg-bento-card w-full max-w-2xl rounded-[2.5rem] border border-slate-800 shadow-2xl p-10 overflow-hidden"
+            >
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20">
+                  <UserPlus className="text-white w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white tracking-tight">Novo Lead</h2>
+                  <p className="text-slate-500 text-sm">Adicione um novo potencial comprador manualmente.</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <div className="space-y-4">
+                   <div>
+                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Nome Completo</label>
+                     <input type="text" placeholder="Ex: João Silva" className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
+                   </div>
+                   <div>
+                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Telefone / WhatsApp</label>
+                     <input type="text" placeholder="(00) 00000-0000" className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
+                   </div>
+                </div>
+                <div className="space-y-4">
+                   <div>
+                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Veículo de Interesse</label>
+                     <input type="text" placeholder="Ex: BMW 320i" className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
+                   </div>
+                   <div>
+                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Origem</label>
+                     <select className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                        <option>WhatsApp Direct</option>
+                        <option>Facebook Ads</option>
+                        <option>Instagram Ads</option>
+                        <option>Site Próprio</option>
+                        <option>Outros</option>
+                     </select>
+                   </div>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 py-4 bg-slate-800 text-slate-300 font-bold rounded-2xl border border-slate-700 hover:bg-slate-700 transition-all uppercase tracking-widest text-sm"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/20 hover:bg-blue-500 transition-all uppercase tracking-widest text-sm"
+                >
+                  Cadastrar Lead
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
